@@ -22,18 +22,10 @@ mod models {
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
 
-    // #[derive(Deserialize, PostgresMapper, Serialize)]
-    // #[pg_mapper(table = "users")] // singular 'user' is a keyword..
-    // pub struct User {
-    //     pub email: String,
-    //     pub first_name: String,
-    //     pub last_name: String,
-    //     pub username: String,
-    // }
-
     #[derive(Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "book")] // singular 'user' is a keyword..
     pub struct Book {
+        pub book_id: i32,
         pub title: String,
         pub isbn: String,
         pub author: String,
@@ -106,6 +98,8 @@ mod db {
     }
 
     pub async fn get_book(client: &Client) -> Result<Vec<Book>, MyError> {
+        println!("From get_book function");
+
         let _stmt = client.prepare("SELECT * FROM book.book").await.unwrap();
 
         let books = client.query(&_stmt, &[])
@@ -117,6 +111,21 @@ mod db {
 
         Ok(books)
     }
+
+    pub async fn get_book_id(client: &Client, book_id: i32) -> Result<Book, MyError> {
+        println!("From get_book_id function");
+
+        let _stmt = client.prepare("SELECT * FROM book.book WHERE book_id = $1").await.unwrap();
+
+        client.query(&_stmt, &[&book_id])
+            .await?
+            .iter()
+            .map(|row| Book::from_row_ref(row).unwrap())
+            .collect::<Vec<Book>>()
+            .pop()
+            .ok_or(MyError::NotFound)
+    }
+
 }
 
 mod handlers {
@@ -148,6 +157,24 @@ mod handlers {
 
         Ok(HttpResponse::Ok().json(all_books))
     }
+
+    pub async fn get_book_id(
+        // book: web::Json<Book>,
+        path: web::Path<i32>,
+        db_pool: web::Data<Pool>,
+    ) -> Result<HttpResponse, Error> {
+        // use crate::models::Status;
+
+
+        let client: Client = db_pool.get().await.map_err(MyError::PoolError)?;
+
+        let all_books = db::get_book_id(&client, path.0).await?;
+
+        println!("{}", path.0);
+        Ok(HttpResponse::Ok().json(all_books))
+        // Ok(web::HttpResponse::Ok().json(Status {status: "ok".to_string()}))
+
+    }
 }
 
 // mod models;
@@ -156,6 +183,7 @@ use actix_web::{web, App, HttpServer, middleware, Responder};
 use dotenv::dotenv;
 use handlers::add_book;
 use handlers::get_book;
+use handlers::get_book_id;
 use tokio_postgres::NoTls;
 
 
@@ -182,9 +210,12 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .data(pool.clone())
             // .service(web::resource("/books").route(web::post().to(add_book)))
-            .service(web::resource("/books")
+            .service(web::resource("/books{_:/?}")
                 .route(web::post().to(add_book))
                 .route(web::get().to(get_book))
+            )
+            .service(web::resource("/books/{book_id}")
+                .route(web::get().to(get_book_id))
             )
 
     })
