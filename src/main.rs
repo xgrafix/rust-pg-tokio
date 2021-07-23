@@ -32,6 +32,15 @@ mod models {
         pub category: String,
     }
 
+    #[derive(Deserialize, PostgresMapper, Serialize)]
+    #[pg_mapper(table = "book")] // singular 'user' is a keyword..
+    pub struct BookNoId {
+        pub title: String,
+        pub isbn: String,
+        pub author: String,
+        pub category: String,
+    }
+
     #[derive(Serialize)]
     pub struct Status {
         pub status: String
@@ -70,13 +79,13 @@ mod errors {
 
 
 mod db {
-    use crate::{errors::MyError, models::Book};
+    use crate::{errors::MyError, models::Book, models::BookNoId};
     use deadpool_postgres::Client;
     use tokio_pg_mapper::FromTokioPostgresRow;
 
-     pub async fn add_book(client: &Client, book_info: Book) -> Result<Book, MyError> {
+     pub async fn add_book(client: &Client, book_info: BookNoId) -> Result<BookNoId, MyError> {
         let _stmt = include_str!("../sql/add_book.sql");
-        let _stmt = _stmt.replace("$table_fields", &Book::sql_table_fields());
+        let _stmt = _stmt.replace("$table_fields", &BookNoId::sql_table_fields());
         let stmt = client.prepare(&_stmt).await.unwrap();
 
         client
@@ -91,8 +100,8 @@ mod db {
             )
             .await?
             .iter()
-            .map(|row| Book::from_row_ref(row).unwrap())
-            .collect::<Vec<Book>>()
+            .map(|row| BookNoId::from_row_ref(row).unwrap())
+            .collect::<Vec<BookNoId>>()
             .pop()
             .ok_or(MyError::NotFound) // more applicable for SELECTs
     }
@@ -129,15 +138,15 @@ mod db {
 }
 
 mod handlers {
-    use crate::{db, errors::MyError, models::Book};
+    use crate::{db, errors::MyError, models::Book, models::BookNoId};
     use actix_web::{web, Error, HttpResponse};
     use deadpool_postgres::{Client, Pool};
 
     pub async fn add_book(
-        book: web::Json<Book>,
+        book: web::Json<BookNoId>,
         db_pool: web::Data<Pool>,
     ) -> Result<HttpResponse, Error> {
-        let book_info: Book = book.into_inner();
+        let book_info: BookNoId = book.into_inner();
 
         let client: Client = db_pool.get().await.map_err(MyError::PoolError)?;
 
