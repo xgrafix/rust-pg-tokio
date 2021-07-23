@@ -164,21 +164,10 @@ mod handlers {
         // book: web::Json<Book>,
         db_pool: web::Data<Pool>,
     ) -> Result<HttpResponse, Error> {
-        // let book_info: Book = book.into_inner();
 
         let client: Client = db_pool.get().await.map_err(MyError::PoolError)?;
 
         let all_books = db::get_book(&client).await?;
-
-        // let mut new_book:Vec<Book> = Vec::new();
-
-
-        // new_book.push(Book{author : "abcd".to_string(), title: "123123".to_string(), isbn: "33".to_string(), category: "44".to_string()});
-        // new_book.push(Book{author : "abcd".to_string(), title: "123123".to_string(), isbn: "33".to_string(), category: "44".to_string()});
-        // new_book.push(Book{author : "abcd".to_string(), title: "123123".to_string(), isbn: "33".to_string(), category: "44".to_string()});
-
-
-
 
         Ok(HttpResponse::Ok().json(all_books))
     }
