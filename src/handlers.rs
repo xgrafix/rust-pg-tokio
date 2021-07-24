@@ -1,5 +1,5 @@
 pub mod handlers {
-    use crate::{db, MyError, Book, BookNoId};
+    use crate::{db, MyError, BookNoId};
     use actix_web::{web, Error, HttpResponse};
     use deadpool_postgres::{Client, Pool};
 
@@ -33,16 +33,12 @@ pub mod handlers {
         path: web::Path<i32>,
         db_pool: web::Data<Pool>,
     ) -> Result<HttpResponse, Error> {
-        // use crate::models::Status;
-
 
         let client: Client = db_pool.get().await.map_err(MyError::PoolError)?;
 
         let all_books = db::db::get_book_id(&client, path.0).await?;
 
-        println!("{}", path.0);
+        // println!("{}", path.0);
         Ok(HttpResponse::Ok().json(all_books))
-        // Ok(web::HttpResponse::Ok().json(Status {status: "ok".to_string()}))
-
     }
 }

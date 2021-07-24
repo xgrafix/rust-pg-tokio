@@ -34,9 +34,7 @@ async fn main() -> std::io::Result<()> {
 
     let server = HttpServer::new(move || {
         App::new()
-        // enable logger - always register actix-web Logger middleware last
             .route("/", web::get().to(status))
-            .wrap(middleware::Logger::default())
             .data(pool.clone())
             // .service(web::resource("/books").route(web::post().to(add_book)))
             .service(web::resource("/books{_:/?}")
@@ -46,6 +44,8 @@ async fn main() -> std::io::Result<()> {
             .service(web::resource("/books/{book_id}")
                 .route(web::get().to(handlers::handlers::get_book_id))
             )
+            // enable logger - always register actix-web Logger middleware last
+            .wrap(middleware::Logger::default())
 
     })
     .bind(config.server_addr.clone())?
