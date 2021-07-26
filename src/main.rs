@@ -18,7 +18,6 @@ use tokio_postgres::NoTls;
 
 async fn status() -> impl Responder {
     use crate::models::models::Status;
-    // "{\"status:\" \"UP\"}"
     web::HttpResponse::Ok().json(Status {status: "ok".to_string()})
 }
 
@@ -36,7 +35,6 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .route("/", web::get().to(status))
             .data(pool.clone())
-            // .service(web::resource("/books").route(web::post().to(add_book)))
             .service(web::resource("/books{_:/?}")
                 .route(web::post().to(handlers::handlers::add_book))
                 .route(web::get().to(handlers::handlers::get_book))
