@@ -1221,23 +1221,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pg"
-version = "0.1.0"
-dependencies = [
- "actix-utils",
- "actix-web",
- "config",
- "deadpool-postgres",
- "derive_more",
- "dotenv",
- "env_logger",
- "serde 1.0.126",
- "tokio-pg-mapper",
- "tokio-pg-mapper-derive",
- "tokio-postgres",
-]
-
-[[package]]
 name = "phf"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2195,6 +2178,23 @@ checksum = "d59cefebd0c892fa2dd6de581e937301d8552cb44489cdff035c6187cb63fa5e"
 dependencies = [
  "winapi 0.2.8",
  "winapi-build",
+]
+
+[[package]]
+name = "xgrafix-rust-pg"
+version = "0.1.1"
+dependencies = [
+ "actix-utils",
+ "actix-web",
+ "config",
+ "deadpool-postgres",
+ "derive_more",
+ "dotenv",
+ "env_logger",
+ "serde 1.0.126",
+ "tokio-pg-mapper",
+ "tokio-pg-mapper-derive",
+ "tokio-postgres",
 ]
 
 [[package]]
